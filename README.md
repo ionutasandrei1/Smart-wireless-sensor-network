@@ -30,7 +30,7 @@ Proiect pentru disciplina **Tehnici de Programare în IoT**. Simulează o rețea
 - [ ] Măsurarea latenței, traficului și consumului CPU/RAM
 - [ ] Implementarea comparației complete edge/cloud/hibrid
 - [ ] Evaluarea precision, recall și F1 pe anomalii etichetate experimental
-- [ ] Extensie opțională: asistent LLM ancorat în datele SQLite
+- [ ] Implementarea unui asistent AI conversațional care analizează măsurătorile, explică anomaliile și răspunde la întrebări despre comunicația MQTT.
 
 ## 6. Tehnologii
 Python 3.11, pandas, scikit-learn (pentru extindere ML), paho-mqtt, Eclipse Mosquitto, SQLite, Streamlit, Docker Compose.
