@@ -337,3 +337,88 @@ Cerințele 2 și 3 au fost implementate și testate folosind procese Python inde
 Rezultatele confirmă funcționarea fluxului de transmitere și stocare a măsurătorilor.
 
 Această implementare constituie baza pentru extinderea proiectului cu detecție de anomalii Edge AI și evaluarea comparativă a arhitecturilor Edge, Cloud și Hibride.
+## Implementare Edge și Cloud – Detectarea anomaliilor
+
+### 1. Obiectiv
+
+Această etapă a proiectului demonstrează detectarea anomaliilor într-o rețea de senzori IoT, prin împărțirea procesării între Gateway Edge și Backend.
+
+Au fost implementate trei funcționalități:
+
+- **Edge – Missing Data:** detectarea măsurătorilor lipsă pe baza numerelor de secvență.
+- **Edge – Spikes:** detectarea variațiilor bruște ale concentrației CO₂.
+- **Cloud – Trends (Drift):** detectarea creșterilor progresive ale concentrației CO₂.
+
+### 2. Arhitectura sistemului
+
+Senzori virtuali Python → Broker MQTT Mosquitto → Gateway Edge → Backend → Bază de date SQLite
+
+Componentele comunică prin protocolul MQTT, folosind brokerul local `127.0.0.1:1883`.
+
+În această implementare, componenta Cloud este simulată printr-un Backend Python executat local. Nu este utilizat un serviciu cloud public.
+
+### 3. Detectarea anomaliilor la nivel Edge
+
+Fișierul `gateway.py` realizează următoarele verificări:
+
+**Date lipsă:** compară numerele de secvență primite de la fiecare senzor. În test, trecerea de la `seq=28` la `seq=10000` a determinat identificarea a 9.971 de secvențe lipsă. Saltul a fost simulat intenționat.
+
+**Spikes:** compară două valori CO₂ succesive. O diferență absolută mai mare de 700 ppm este considerată variație bruscă.
+
+**Alertă CO₂:** o valoare mai mare de 1.800 ppm declanșează o alertă suplimentară.
+
+### 4. Detectarea drift-ului în Backend
+
+Fișierul `backend.py` analizează ultimele cinci măsurători CO₂.
+
+Drift-ul este semnalat dacă valorile sunt strict crescătoare, iar diferența dintre prima și ultima este de minimum 400 ppm.
+
+Testul a folosit următoarea serie:
+
+`600 → 750 → 900 → 1050 → 1200 ppm`
+
+Backend-ul a afișat mesajul `CLOUD DRIFT DETECTAT` și a salvat indicatorul `drift=1` în SQLite.
+
+### 5. Rularea aplicației
+
+Este necesar Python cu biblioteca `paho-mqtt` instalată și un broker Mosquitto pornit pe portul 1883.
+
+Se deschid ferestre CMD separate și se execută:
+
+**Gateway:**
+```bat
+python gateway.py
+```
+
+**Backend:**
+```bat
+python backend.py
+```
+
+**Senzor CO₂:**
+```bat
+python senzor.py co2
+```
+
+**Senzor temperatură:**
+```bat
+python senzor.py temperatura
+```
+
+**Senzor luminozitate:**
+```bat
+python senzor.py lumina
+```
+
+**Testul pentru drift:**
+```bat
+python test_drift.py
+```
+
+### 6. Documentație și rezultate
+
+Rezultatele experimentale, capturile de ecran și explicațiile tehnice sunt disponibile în:
+
+`Raport_Edge_Cloud_Spikes_Date_Lipsa_Drift.pdf`
+
+Implementarea folosește algoritmi bazați pe reguli și praguri demonstrative. Această etapă nu reprezintă încă detecție printr-un model de inteligență artificială antrenat.
