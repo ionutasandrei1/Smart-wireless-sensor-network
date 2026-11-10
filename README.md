@@ -71,3 +71,58 @@ Replay-ul datelor istorice nu reproduce toate proprietățile unei rețele radio
 Singh, A. P. & Chaudhari, S. (2018). *Room Occupancy Estimation*. UCI Machine Learning Repository. https://doi.org/10.24432/C5P605
 
 Model de structură: exemplul Smart Greenhouse Monitoring furnizat la curs; întrebarea RQ1 și metodologia experimentală provin din documentul `RQs(1).pdf` al disciplinei.
+## Implementarea practică – Cerințele 2 și 3
+
+### Cerința 2 – Comunicarea senzorilor cu Gateway-ul
+
+Au fost implementate trei procese Python independente, care simulează senzori de CO₂, temperatură și luminozitate.
+
+Fiecare senzor generează date sintetice la intervale de două secunde și transmite măsurătorile prin protocolul MQTT, folosind brokerul Eclipse Mosquitto.
+
+Gateway-ul primește datele de la toți senzorii prin abonarea la topicul `wsn/sensors/+`.
+
+**Pornirea aplicației:**
+
+Se deschid patru ferestre CMD în folderul proiectului și se execută:
+
+```bash
+python gateway.py
+python senzor.py co2
+python senzor.py temperatura
+python senzor.py lumina
+```
+
+Fiecare comandă se execută într-o fereastră CMD separată.
+
+### Cerința 3 – Transmiterea datelor către Backend
+
+Gateway-ul retransmite măsurătorile către topicul MQTT `wsn/backend/measurements`.
+
+Procesul `backend.py` primește mesajele și le stochează într-o bază de date SQLite numită `sensors.sqlite3`.
+
+**Pornirea Backend-ului:**
+
+```bash
+python backend.py
+```
+
+Se execută într-o fereastră CMD separată, în timp ce Gateway-ul și senzorii funcționează.
+
+**Verificarea bazei de date:**
+
+```bash
+python -c "import sqlite3; c=sqlite3.connect('sensors.sqlite3'); print(c.execute('SELECT COUNT(*) FROM measurements').fetchone()[0]); c.close()"
+```
+
+În timpul testului efectuat au fost confirmate 57 de măsurători salvate, câte 19 pentru fiecare senzor.
+
+### Arhitectura implementată
+
+Senzori virtuali (CO₂, temperatură, lumină) → Broker MQTT → Gateway Edge → Broker MQTT → Backend → SQLite.
+
+**Cerințe de rulare:** Python, biblioteca `paho-mqtt` și un broker Eclipse Mosquitto accesibil pe `localhost:1883`. Această demonstrație funcționează local, fără Docker și fără senzori fizici.
+
+### Documentația testelor
+
+- `Cerinta_2_Senzori_Gateway.pdf` – capturi și explicații pentru comunicația senzori–Gateway.
+- `Cerinta_3_Gateway_Backend_SQLite.pdf` – capturi și explicații pentru transmiterea și stocarea datelor.
